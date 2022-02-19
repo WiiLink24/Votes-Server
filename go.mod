@@ -4,7 +4,6 @@ go 1.17
 
 require (
 	github.com/RiiConnect24/wiino v0.0.0-20210419165641-a2614cecbcca
-	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.15.0
 )
 

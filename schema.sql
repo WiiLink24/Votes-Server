@@ -68,7 +68,7 @@ ALTER TABLE public.questions OWNER TO postgres;
 --
 
 CREATE TABLE public.suggestions (
-    id uuid NOT NULL,
+    id integer NOT NULL,
     country_code integer NOT NULL,
     region_code integer NOT NULL,
     language_code integer NOT NULL,
@@ -82,11 +82,33 @@ CREATE TABLE public.suggestions (
 ALTER TABLE public.suggestions OWNER TO postgres;
 
 --
+-- Name: suggestions_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.suggestions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.suggestions_id_seq OWNER TO postgres;
+
+--
+-- Name: suggestions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.suggestions_id_seq OWNED BY public.suggestions.id;
+
+
+--
 -- Name: votes; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.votes (
-    id uuid NOT NULL,
+    id integer NOT NULL,
     type_cd integer NOT NULL,
     question_id integer NOT NULL,
     wii_no bigint NOT NULL,
@@ -97,6 +119,42 @@ CREATE TABLE public.votes (
 
 
 ALTER TABLE public.votes OWNER TO postgres;
+
+--
+-- Name: votes_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.votes_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.votes_id_seq OWNER TO postgres;
+
+--
+-- Name: votes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.votes_id_seq OWNED BY public.votes.id;
+
+
+--
+-- Name: suggestions id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.suggestions ALTER COLUMN id SET DEFAULT nextval('public.suggestions_id_seq'::regclass);
+
+
+--
+-- Name: votes id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.votes ALTER COLUMN id SET DEFAULT nextval('public.votes_id_seq'::regclass);
+
 
 --
 -- Name: questions questions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres

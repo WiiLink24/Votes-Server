@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	wiino "github.com/RiiConnect24/wiino/golang"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
 	"net/http"
@@ -14,11 +13,11 @@ import (
 
 const (
 	InsertVote = `INSERT INTO votes 
-					(id, type_cd, question_id, wii_no, country_id, region_id, ans_cnt)
-					VALUES ($1, $2, $3, $4, $5, $6, $7)`
+					(type_cd, question_id, wii_no, country_id, region_id, ans_cnt)
+					VALUES ($1, $2, $3, $4, $5, $6)`
 	InsertSuggestion = `INSERT INTO suggestions
-						(id, country_code, region_code, language_code, content, choice1, choice2, wii_no)
-						VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+						(country_code, region_code, language_code, content, choice1, choice2, wii_no)
+						VALUES ($1, $2, $3, $4, $5, $6, $7)`
 )
 
 var (
@@ -65,7 +64,7 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 	regionID := convertToUint(w, r.URL.Query().Get("regionID"))
 	ansCNT := convertToUint(w, r.URL.Query().Get("ansCNT"))
 
-	_, err := pool.Exec(ctx, InsertVote, uuid.New(), typeCD, questionID, wiiNumber, countryID, regionID, ansCNT)
+	_, err := pool.Exec(ctx, InsertVote, typeCD, questionID, wiiNumber, countryID, regionID, ansCNT)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		panic(err)
@@ -98,7 +97,7 @@ func handleSuggestion(w http.ResponseWriter, r *http.Request) {
 		panic(InvalidData)
 	}
 
-	_, err = pool.Exec(ctx, InsertSuggestion, uuid.New(), countryCode, regionCode, languageCode, content, choice1, choice2, wiiNumber)
+	_, err = pool.Exec(ctx, InsertSuggestion, countryCode, regionCode, languageCode, content, choice1, choice2, wiiNumber)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		panic(err)
