@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	wiino "github.com/RiiConnect24/wiino/golang"
 	"github.com/google/uuid"
@@ -18,6 +19,10 @@ const (
 	InsertSuggestion = `INSERT INTO suggestions
 						(id, country_code, region_code, language_code, content, choice1, choice2, wii_no)
 						VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+)
+
+var (
+	InvalidData = errors.New("invalid data")
 )
 
 var pool *pgxpool.Pool
@@ -44,16 +49,14 @@ func main() {
 	http.HandleFunc("/cgi-bin/suggest.cgi", handleSuggestion)
 
 	err = http.ListenAndServe(":80", nil)
-	if err != nil {
-		panic(err)
-	}
+	checkError(err)
 }
 
 func handleVote(w http.ResponseWriter, r *http.Request) {
 	wiiNumber := convertToUint(w, r.URL.Query().Get("wiiNo"))
 	if wiino.NWC24CheckUserID(wiiNumber) != 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		panic(fmt.Errorf("invalid Wii Number"))
+		panic(InvalidData)
 	}
 
 	typeCD := convertToUint(w, r.URL.Query().Get("typeCD"))
@@ -68,11 +71,7 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	_, err = w.Write([]byte("100"))
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		panic(err)
-	}
+	w.Write([]byte("100"))
 }
 
 func handleSuggestion(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +84,7 @@ func handleSuggestion(w http.ResponseWriter, r *http.Request) {
 	wiiNumber := convertToUint(w, r.FormValue("wiiNo"))
 	if wiino.NWC24CheckUserID(wiiNumber) != 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		panic(fmt.Errorf("invalid Wii Number"))
+		panic(InvalidData)
 	}
 
 	countryCode := convertToUint(w, r.FormValue("countryID"))
@@ -94,6 +93,10 @@ func handleSuggestion(w http.ResponseWriter, r *http.Request) {
 	content := r.FormValue("content")
 	choice1 := r.FormValue("choice1")
 	choice2 := r.FormValue("choice2")
+	if content == "" || choice1 == "" || choice2 == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		panic(InvalidData)
+	}
 
 	_, err = pool.Exec(ctx, InsertSuggestion, uuid.New(), countryCode, regionCode, languageCode, content, choice1, choice2, wiiNumber)
 	if err != nil {
@@ -101,11 +104,7 @@ func handleSuggestion(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	_, err = w.Write([]byte("100"))
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		panic(err)
-	}
+	w.Write([]byte("100"))
 }
 
 func convertToUint(w http.ResponseWriter, param string) uint64 {
