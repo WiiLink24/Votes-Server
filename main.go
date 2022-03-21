@@ -47,7 +47,7 @@ func main() {
 	http.HandleFunc("/cgi-bin/vote.cgi", handleVote)
 	http.HandleFunc("/cgi-bin/suggest.cgi", handleSuggestion)
 
-	err = http.ListenAndServe(":80", nil)
+	err = http.ListenAndServe(config.Address, nil)
 	checkError(err)
 }
 

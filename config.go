@@ -6,10 +6,11 @@ import (
 )
 
 type Config struct {
-	Username        string `xml:"username"`
-	Password        string `xml:"password"`
-	DatabaseAddress string `xml:"databaseAddress"`
-	DatabaseName    string `xml:"databaseName"`
+	Username		string	`xml:"username"`
+	Password		string	`xml:"password"`
+	DatabaseAddress	string	`xml:"databaseAddress"`
+	DatabaseName	string	`xml:"databaseName"`
+	Address			string	`xml:"address"`
 }
 
 func GetConfig() Config {
