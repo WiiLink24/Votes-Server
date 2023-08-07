@@ -2,9 +2,8 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	wiino "github.com/RiiConnect24/wiino/golang"
+	"github.com/WiiLink24/nwc24"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
 	"net/http"
@@ -18,10 +17,6 @@ const (
 	InsertSuggestion = `INSERT INTO suggestions
 						(country_code, region_code, language_code, content, choice1, choice2, wii_no)
 						VALUES ($1, $2, $3, $4, $5, $6, $7)`
-)
-
-var (
-	InvalidData = errors.New("invalid data")
 )
 
 var pool *pgxpool.Pool
@@ -47,15 +42,18 @@ func main() {
 	http.HandleFunc("/cgi-bin/vote.cgi", handleVote)
 	http.HandleFunc("/cgi-bin/suggest.cgi", handleSuggestion)
 
+	fmt.Printf("Starting HTTP connection (%s)...\nNot using the usual port for HTTP?\nBe sure to use a proxy, otherwise the Wii can't connect!\n", config.Address)
 	err = http.ListenAndServe(config.Address, nil)
 	checkError(err)
 }
 
 func handleVote(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("a")
 	wiiNumber := convertToUint(w, r.URL.Query().Get("wiiNo"))
-	if wiino.NWC24CheckUserID(wiiNumber) != 0 {
+	number := nwc24.LoadWiiNumber(wiiNumber)
+	if !number.CheckWiiNumber() {
 		w.WriteHeader(http.StatusBadRequest)
-		panic(InvalidData)
+		return
 	}
 
 	typeCD := convertToUint(w, r.URL.Query().Get("typeCD"))
@@ -67,7 +65,7 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 	_, err := pool.Exec(ctx, InsertVote, typeCD, questionID, wiiNumber, countryID, regionID, ansCNT)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		panic(err)
+		return
 	}
 
 	w.Write([]byte("100"))
@@ -76,14 +74,15 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 func handleSuggestion(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		panic(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	wiiNumber := convertToUint(w, r.FormValue("wiiNo"))
-	if wiino.NWC24CheckUserID(wiiNumber) != 0 {
+	number := nwc24.LoadWiiNumber(wiiNumber)
+	if !number.CheckWiiNumber() {
 		w.WriteHeader(http.StatusBadRequest)
-		panic(InvalidData)
+		return
 	}
 
 	countryCode := convertToUint(w, r.FormValue("countryID"))
@@ -94,13 +93,13 @@ func handleSuggestion(w http.ResponseWriter, r *http.Request) {
 	choice2 := r.FormValue("choice2")
 	if content == "" || choice1 == "" || choice2 == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		panic(InvalidData)
+		return
 	}
 
 	_, err = pool.Exec(ctx, InsertSuggestion, countryCode, regionCode, languageCode, content, choice1, choice2, wiiNumber)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		panic(err)
+		return
 	}
 
 	w.Write([]byte("100"))
