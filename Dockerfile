@@ -10,7 +10,6 @@ WORKDIR /opt/wiilink/evc/Votes-Server/
 COPY go.mod .
 COPY go.sum .
 RUN go mod download
-RUN go get github.com/WiiLink24/nwc24
 
 # Copy necessary parts of the Mail-Go source into builder's source
 COPY *.go ./
