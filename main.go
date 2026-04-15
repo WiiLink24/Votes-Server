@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/WiiLink24/nwc24"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/WiiLink24/nwc24"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (
@@ -33,10 +34,9 @@ func main() {
 	config := GetConfig()
 
 	// Start SQL
+	var err error
 	dbString := fmt.Sprintf("postgres://%s:%s@%s/%s", config.Username, config.Password, config.DatabaseAddress, config.DatabaseName)
-	dbConf, err := pgxpool.ParseConfig(dbString)
-	checkError(err)
-	pool, err = pgxpool.ConnectConfig(ctx, dbConf)
+	pool, err = pgxpool.New(ctx, dbString)
 	checkError(err)
 
 	http.HandleFunc("/cgi-bin/vote.cgi", handleVote)

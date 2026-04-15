@@ -2,19 +2,19 @@ package main
 
 import (
 	"encoding/xml"
-	"io/ioutil"
+	"os"
 )
 
 type Config struct {
-	Username		string	`xml:"username"`
-	Password		string	`xml:"password"`
-	DatabaseAddress	string	`xml:"databaseAddress"`
-	DatabaseName	string	`xml:"databaseName"`
-	Address			string	`xml:"address"`
+	Username        string `xml:"username"`
+	Password        string `xml:"password"`
+	DatabaseAddress string `xml:"databaseAddress"`
+	DatabaseName    string `xml:"databaseName"`
+	Address         string `xml:"address"`
 }
 
 func GetConfig() Config {
-	data, err := ioutil.ReadFile("config.xml")
+	data, err := os.ReadFile("config.xml")
 	checkError(err)
 
 	var config Config
