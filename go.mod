@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/WiiLink24/nwc24 v0.0.0-20251223184323-cc2586e6b86d // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.11.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
