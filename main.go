@@ -9,6 +9,7 @@ import (
 
 	"github.com/WiiLink24/nwc24"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/logrusorgru/aurora/v4"
 )
 
 const (
@@ -49,7 +50,7 @@ func main() {
 
 func handleVote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
-	
+
 	wiiNumber := convertToUint(w, r.URL.Query().Get("wiiNo"))
 	number := nwc24.LoadWiiNumber(wiiNumber)
 	if !number.CheckWiiNumber() {
@@ -65,16 +66,22 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 
 	_, err := pool.Exec(ctx, InsertVote, typeCD, questionID, wiiNumber, countryID, regionID, ansCNT)
 	if err != nil {
+		log.Println(aurora.Red("Error inserting vote:"), err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	w.Write([]byte("100"))
+	_, err = w.Write([]byte("100"))
+	if err != nil {
+		log.Println(aurora.Red("Error writing vote response:"), err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func handleSuggestion(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
-	
+
 	err := r.ParseForm()
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -101,11 +108,17 @@ func handleSuggestion(w http.ResponseWriter, r *http.Request) {
 
 	_, err = pool.Exec(ctx, InsertSuggestion, countryCode, regionCode, languageCode, content, choice1, choice2, wiiNumber)
 	if err != nil {
+		log.Println(aurora.Red("Error inserting suggestion:"), err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	w.Write([]byte("100"))
+	_, err = w.Write([]byte("100"))
+	if err != nil {
+		log.Println(aurora.Red("Error writing suggestion response:"), err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func convertToUint(w http.ResponseWriter, param string) uint64 {

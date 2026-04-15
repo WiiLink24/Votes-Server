@@ -5,6 +5,7 @@ go 1.25.0
 require (
 	github.com/WiiLink24/nwc24 v0.0.0-20251223184323-cc2586e6b86d
 	github.com/jackc/pgx/v5 v5.9.1
+	github.com/logrusorgru/aurora/v4 v4.0.0
 )
 
 require (
