@@ -1,4 +1,4 @@
-FROM golang:1.20.5-alpine3.18 as builder
+FROM golang:1.25-alpine as builder
 
 # We assume only git is needed for all dependencies.
 # openssl is already built-in.
@@ -11,12 +11,17 @@ COPY go.mod .
 COPY go.sum .
 RUN go mod download
 
-# Copy necessary parts of the Mail-Go source into builder's source
+# Copy source into builder's source
 COPY *.go ./
 
 # Build to name "app".
 RUN go build -o app .
 
+FROM alpine:latest
+
+WORKDIR /opt/wiilink/evc/Votes-Server/
+
+COPY --from=builder /opt/wiilink/evc/Votes-Server/app .
+
 EXPOSE 8003
-# Wait until there's an actual MySQL connection we can use to start.
 CMD ["./app"]
